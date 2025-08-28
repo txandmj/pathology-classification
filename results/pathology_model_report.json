@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-08-26T15:20:27.263374",
+  "methodology": "Pretrain + Finetune",
+  "pretrain_dataset": "NCT-CRC-HE-100K",
+  "pretrain_performance": {
+    "best_val_acc": 99.53333333333333
+  },
+  "finetune_cv_results": {
+    "fold_aucs": [
+      0.625,
+      0.5,
+      1.0,
+      0.33333333333333337,
+      0.6666666666666667
+    ],
+    "mean_auc": 0.625,
+    "std_auc": 0.2204792759220492,
+    "cv_percent": 35.276684147527874
+  },
+  "final_test_performance": {
+    "accuracy": 0.625,
+    "auc": 0.6000000000000001
+  },
+  "comparison_with_baseline": {
+    "small_dataset_dl": "0.57 \u00b1 0.11",
+    "traditional_ml": "0.68 \u00b1 0.37",
+    "pretrain_finetune": "0.62 (single test)"
+  }
+}
