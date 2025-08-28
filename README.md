@@ -7,6 +7,15 @@ This research project addresses the challenge of automated lymph node metastasis
 **Research Question**: Can we build an effective LNM classifier using only 38 labeled pathological images by leveraging large-scale pre-training?
 
 **Answer**: Yes - achieved 0.832 AUC with 4/5 folds meeting clinical standards (AUC ≥ 0.8) through pre-trained feature extraction.
+## Data Requirements
+
+This project requires H&E stained pathological images organized as:
+- `data/LNM/`: Images with lymph node metastasis
+- `data/NOT-LNM/`: Images without lymph node metastasis
+
+**Privacy Compliance**: Medical images are not included in this repository. 
+Users must provide their own datasets following appropriate privacy protocols.
+
 
 ## Complete Workflow
 
