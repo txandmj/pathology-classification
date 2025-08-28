@@ -268,7 +268,7 @@ lnm_probability = prediction[0, 1]
 For research collaboration, questions, or access to additional materials:
 - Email: txandmj@outlook.com
 - GitHub: https://github.com/txandmj/GITumorModel
-- Portfolio: 
+- Portfolio: https://txandmj.github.io/pathology-classification-showcase/
 
 ## Acknowledgments
 
