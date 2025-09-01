@@ -1,193 +1,28 @@
 # Lymph Node Metastasis Classification using Deep Learning
 
-## Project Overview
+This project explores automated lymph node metastasis (LNM) detection in H&E stained pathological images using a hybrid deep learning + machine learning approach.
 
-This research project addresses the challenge of automated lymph node metastasis (LNM) detection in H&E stained pathological images using a hybrid approach combining large-scale pre-training with traditional machine learning techniques. The project demonstrates how to overcome small dataset limitations in medical AI while achieving clinical-grade performance.
+Challenge: Only 38 labeled clinical images available (22 LNM, 16 non-LNM)
 
-**Research Question**: Can we build an effective LNM classifier using only 38 labeled pathological images by leveraging large-scale pre-training?
+Solution: Pre-train ResNet-50 on 100k colorectal cancer patches (NCT-CRC-HE-100K), then use it as a frozen feature extractor
 
-**Answer**: Yes - achieved 0.832 AUC with 4/5 folds meeting clinical standards (AUC ≥ 0.8) through pre-trained feature extraction.
-## Data Requirements
+Classifier: Logistic Regression on extracted features
 
-This project requires H&E stained pathological images organized as:
-- `data/LNM/`: Images with lymph node metastasis
-- `data/NOT-LNM/`: Images without lymph node metastasis
+Result: 0.832 AUC, with 4/5 folds reaching clinical-grade performance (AUC ≥ 0.8)
 
-**Privacy Compliance**: Medical images are not included in this repository. 
-Users must provide their own datasets following appropriate privacy protocols.
+Key Contributions
 
+Overcomes small dataset limitation with pre-trained features
 
-## Complete Workflow
+Rigorous 5-fold stratified cross-validation with leakage prevention
 
-### Step 1: Data Preparation
+Deployable ML pipeline (joblib + pretrained model)
 
-**Large-Scale Pre-training Dataset**
-- **Source**: NCT-CRC-HE-100K from HuggingFace
-- **Size**: 100,000 H&E stained colorectal cancer patches
-- **Classes**: 9 tissue types (Adipose, Background, Debris, Lymphocytes, Mucus, Muscle, Normal, Stroma, Tumor)
-- **Purpose**: Learn fundamental histopathological features and tissue patterns
+Clinical significance: demonstrates feasibility of AI-assisted pathology with minimal data
 
-**Target Dataset (Medical Collaboration)**
-- **Size**: 38 H&E stained pathological images
-- **Labels**: 22 LNM (Lymph Node Metastasis) vs 16 non-LNM
-- **Source**: Clinical collaboration with medical professionals
-- **Challenge**: Extremely small sample size for deep learning
+📂 Code, models, and usage instructions provided for reproducibility.
 
-### Step 2: Model Pre-training
-
-**Objective**: Train a feature extractor that understands basic histopathological patterns
-
-**Implementation**:
-```python
-# Pre-train ResNet-50 on NCT-CRC-HE-100K
-model = PathologyFeatureExtractor(backbone='resnet50', num_pretrain_classes=9)
-# Train for 15 epochs achieving 99.53% validation accuracy
-torch.save(model.state_dict(), 'pretrained_nctcrc_model.pth')
-```
-
-**Results**: 99.53% validation accuracy, creating a robust pathological feature extractor
-
-### Step 3: Feature Extraction Strategy
-
-**Key Innovation**: Instead of fine-tuning (which caused overfitting), we use the pre-trained model as a fixed feature extractor.
-
-**Process**:
-1. Load pre-trained model and freeze all weights
-2. Extract 2048-dimensional feature vectors from each image
-3. Apply traditional machine learning classifiers to these features
-
-```python
-# Extract features using pre-trained model
-features = model(image, mode='features')  # 2048-dim vector
-# Apply traditional ML pipeline
-pipeline = Pipeline([
-    ('scaler', StandardScaler()),
-    ('classifier', LogisticRegression(class_weight='balanced'))
-])
-```
-
-### Step 4: Classification and Validation
-
-**Cross-Validation Setup**:
-- 5-fold stratified cross-validation
-- Pipeline-based approach to prevent data leakage
-- Multiple classifier comparison
-
-**Classifier Performance**:
-
-| Method | AUC | Stability (CV%) | Assessment |
-|--------|-----|-----------------|------------|
-| **Logistic Regression** | **0.832 ± 0.137** | **16.4%** | **Recommended** |
-| SVM (RBF) | 0.813 ± 0.124 | 15.3% | Good |
-| Random Forest | 0.752 ± 0.052 | 6.9% | Good |
-| Gradient Boosting | 0.502 ± 0.252 | 50.2% | Poor |
-
-### Step 5: Model Deployment
-
-**Final Model**: Logistic Regression pipeline with StandardScaler
-- **Expected Performance**: 0.832 AUC (clinical-grade)
-- **Stability**: Good (16.4% coefficient of variation)
-- **Clinical Viability**: 4/5 folds exceed clinical threshold
-
-**Saved Components**:
-- `final_lnm_logistic_regression.joblib`: Complete pipeline (scaler + classifier)
-- `pretrained_nctcrc_model.pth`: Pre-trained feature extractor
-
-## Technical Implementation
-
-### Architecture
-
-```
-Input Image (H&E Stained) 
-    ↓
-Pre-trained ResNet-50 Feature Extractor (frozen)
-    ↓ 
-2048-dimensional feature vector
-    ↓
-StandardScaler (fitted per CV fold)
-    ↓
-Logistic Regression Classifier
-    ↓
-LNM vs non-LNM Prediction + Confidence
-```
-
-### Key Technical Decisions
-
-**Why Feature Extraction Over Fine-tuning?**
-- Fine-tuning showed severe overfitting (AUC 0.625 ± 0.221, CV 35.3%)
-- Feature extraction achieved better stability (AUC 0.832 ± 0.137, CV 16.4%)
-- Traditional ML classifiers handle small datasets more reliably
-
-**Why Logistic Regression?**
-- Best balance of performance and stability
-- Provides interpretable probability outputs
-- Robust to small sample sizes with proper regularization
-
-### Methodological Safeguards
-
-**Data Leakage Prevention**:
-- sklearn Pipeline ensures scaler is fit separately per CV fold
-- No information from validation folds leaks into training
-
-**Reproducibility**:
-- Fixed random seeds across all components
-- Deterministic cross-validation splits
-- Version-controlled hyperparameters
-
-**Validation Rigor**:
-- Bootstrap confidence intervals
-- Fold-by-fold performance analysis
-- Multiple stability metrics
-
-## Performance Analysis
-
-### Comparison with Alternative Approaches
-
-| Approach | Mean AUC | Stability | Clinical Viability |
-|----------|----------|-----------|-------------------|
-| Small Dataset Deep Learning | 0.570 ± 0.110 | Poor (20.0% CV) | Below standard |
-| Traditional Machine Learning | 0.683 ± 0.367 | Very Poor (53.7% CV) | Unstable |
-| Deep Learning Fine-tuning | 0.625 ± 0.221 | Poor (35.3% CV) | Moderate |
-| **Pre-trained Features + ML** | **0.832 ± 0.137** | **Good (16.4% CV)** | **Clinical-grade** |
-
-### Key Achievements
-
-- **49% performance improvement** over baseline small-dataset approaches
-- **4x stability improvement** (CV reduction from 53.7% to 16.4%)
-- **Clinical-grade performance** achieved with only 38 training images
-- **Methodologically rigorous** implementation preventing common ML pitfalls
-
-## Clinical Significance
-
-**Performance Level**: AUC 0.832 exceeds many published medical AI systems
-**Consistency**: 4/5 cross-validation folds achieve clinical standards
-**Practical Value**: Demonstrates feasibility of AI-assisted pathology with minimal training data
-
-**Clinical Assessment**:
-- ✓ Excellent: Highly consistent clinical-grade performance
-- ✓ Suitable for research collaboration and further validation
-- ✓ Foundation for larger-scale clinical studies
-
-## File Structure
-
-```
-pathology-lnm-classification/
-├── data/
-│   ├── LNM/                    # LNM images
-│   └── NOT-LNM/                # non-LNM images
-├── models/
-│   ├── pretrained_nctcrc_model.pth
-│   └── final_lnm_logistic_regression.joblib
-├── src/
-│   ├── corrected_feature_classifier.py
-│   ├── pretrain_pipeline.py
-│   └── evaluation_utils.py
-├── results/
-│   ├── cv_results.json
-│   └── performance_plots.png
-├── README.md
-└── requirements.txt
-```
+⚠️ Research only — not for clinical use.
 
 ## Usage Instructions
 
@@ -267,7 +102,7 @@ lnm_probability = prediction[0, 1]
 
 For research collaboration, questions, or access to additional materials:
 - Email: txandmj@outlook.com
-- GitHub: https://github.com/txandmj/GITumorModel
+- GitHub: https://github.com/txandmj/pathology-classification 
 - Portfolio: https://txandmj.github.io/pathology-classification-showcase/
 
 ## Acknowledgments
